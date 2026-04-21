@@ -1,0 +1,59 @@
+{
+  "id_counter": 8,
+  "classes": [
+    {
+      "class_id": "C001",
+      "name": "Yoga Flow",
+      "instructor": "Sarah Johnson",
+      "capacity": 15,
+      "class_type": "Yoga",
+      "bookings": []
+    },
+    {
+      "class_id": "C002",
+      "name": "Spin Cycle",
+      "instructor": "Mark Davis",
+      "capacity": 20,
+      "class_type": "Spin",
+      "bookings": []
+    },
+    {
+      "class_id": "C003",
+      "name": "HIIT Blast",
+      "instructor": "Emma Clarke",
+      "capacity": 12,
+      "class_type": "HIIT",
+      "bookings": []
+    },
+    {
+      "class_id": "C004",
+      "name": "Pilates Core",
+      "instructor": "Lena Park",
+      "capacity": 10,
+      "class_type": "Pilates",
+      "bookings": []
+    },
+    {
+      "class_id": "C005",
+      "name": "Yoga Flow",
+      "instructor": "Sarah Johnson",
+      "capacity": 2,
+      "class_type": "Yoga",
+      "bookings": []
+    },
+    {
+      "class_id": "C006",
+      "name": "HIIT Blast",
+      "instructor": "Emma Clarke",
+      "capacity": 1,
+      "class_type": "HIIT",
+      "bookings": [
+        {
+          "user_id": "M001",
+          "user_name": "Alice Smith",
+          "user_type": "Member"
+        }
+      ]
+    }
+  ]
+}

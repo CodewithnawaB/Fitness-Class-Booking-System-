@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Class Booking System — M34022</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #1a2744;
+    --blue:   #2d5a8e;
+    --sky:    #4a90d9;
+    --light:  #e8f0fb;
+    --white:  #ffffff;
+    --grey0:  #f4f6fa;
+    --grey1:  #e2e8f0;
+    --grey2:  #94a3b8;
+    --grey3:  #475569;
+    --text:   #1e293b;
+    --green:  #16a34a;
+    --amber:  #d97706;
+    --red:    #dc2626;
+    --green-bg: #f0fdf4;
+    --amber-bg: #fffbeb;
+    --red-bg:   #fef2f2;
+    --shadow: 0 2px 12px rgba(26,39,68,.10);
+    --shadow-lg: 0 8px 32px rgba(26,39,68,.14);
+    --radius: 10px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--grey0);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy);
+    padding: 0 28px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,.25);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .topbar-title { color: #fff; font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+  .topbar-sub   { color: #7fa3c8; font-size: 12px; }
+  .topbar-right { color: #7fa3c8; font-size: 12px; font-family: var(--mono); }
+
+  /* ── TABS ── */
+  .tabs-wrap { background: var(--white); border-bottom: 1px solid var(--grey1); padding: 0 28px; display: flex; gap: 0; }
+  .tab-btn {
+    padding: 14px 20px;
+    border: none; background: none; cursor: pointer;
+    font-family: var(--font); font-size: 13.5px; font-weight: 500;
+    color: var(--grey2); border-bottom: 3px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--blue); }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+
+  /* ── MAIN CONTENT ── */
+  .content { padding: 28px; max-width: 1200px; margin: 0 auto; }
+  .tab-panel { display: none; animation: fadeIn .18s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--grey1); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--grey0); padding: 10px 14px;
+    text-align: left; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .6px; color: var(--grey3);
+    border-bottom: 1px solid var(--grey1);
+  }
+  tbody tr { border-bottom: 1px solid var(--grey1); cursor: pointer; transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--grey0); }
+  tbody tr.selected { background: var(--light) !important; }
+  td { padding: 11px 14px; font-size: 13.5px; vertical-align: middle; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .badge-green  { background: var(--green-bg); color: var(--green); }
+  .badge-amber  { background: var(--amber-bg); color: var(--amber); }
+  .badge-red    { background: var(--red-bg);   color: var(--red);   }
+  .badge::before { content: '●'; font-size: 7px; }
+
+  /* ── CAPACITY BAR ── */
+  .cap-bar { width: 80px; height: 6px; background: var(--grey1); border-radius: 99px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .cap-fill { height: 100%; border-radius: 99px; transition: width .3s; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 7px; border: none;
+    font-family: var(--font); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: opacity .15s, transform .1s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--blue);  color: #fff; }
+  .btn-danger  { background: var(--red);   color: #fff; }
+  .btn-ghost   { background: var(--grey1); color: var(--grey3); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-sm      { padding: 5px 12px; font-size: 12px; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--grey3); letter-spacing: .3px; }
+  input, select {
+    padding: 9px 12px; border: 1.5px solid var(--grey1);
+    border-radius: 7px; font-family: var(--font); font-size: 13.5px;
+    color: var(--text); background: var(--white);
+    transition: border-color .15s, box-shadow .15s; outline: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px rgba(74,144,217,.15);
+  }
+  input.error { border-color: var(--red); }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--grey2); }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-sub   { font-size: 12px; color: var(--grey2); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 12px 20px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 500;
+    box-shadow: var(--shadow-lg); z-index: 999;
+    transform: translateY(80px); opacity: 0;
+    transition: transform .25s ease, opacity .25s ease;
+    max-width: 340px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { background: var(--navy); color: #fff; }
+  #toast.error   { background: #fff; color: var(--red); border: 1.5px solid var(--red); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,.45);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--white); border-radius: 14px;
+    padding: 28px; width: 420px; max-width: 95vw;
+    box-shadow: var(--shadow-lg);
+    transform: scale(.95); transition: transform .2s;
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 18px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+  /* ── BOOKING LIST ── */
+  .booking-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; border-radius: 8px;
+    border: 1px solid var(--grey1); margin-bottom: 8px;
+    transition: background .1s;
+  }
+  .booking-row:hover { background: var(--grey0); }
+  .booking-info { display: flex; flex-direction: column; gap: 2px; }
+  .booking-name { font-size: 13.5px; font-weight: 600; }
+  .booking-meta { font-size: 11.5px; color: var(--grey2); font-family: var(--mono); }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .8px; color: var(--grey2); margin-bottom: 12px;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--grey1); margin: 20px 0; }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 40px 20px; color: var(--grey2); font-size: 13.5px; }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🏋</div>
+    <div>
+      <div class="topbar-title">Fitness Class Booking System</div>
+      <div class="topbar-sub">University of Portsmouth London — M34022</div>
+    </div>
+  </div>
+  <div class="topbar-right">Shafiq ur Rehman · 2516407</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <button class="tab-btn active" onclick="switchTab('classes')">📅  Classes</button>
+  <button class="tab-btn" onclick="switchTab('book')">✅  Book a Class</button>
+  <button class="tab-btn" onclick="switchTab('manage')">📋  Manage Bookings</button>
+  <button class="tab-btn" onclick="switchTab('admin')">⚙️  Add / Remove Class</button>
+</div>
+
+<div class="content">
+
+  <!-- ═══════════════════════════════════════ CLASSES TAB -->
+  <div class="tab-panel active" id="tab-classes">
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">All Fitness Classes</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="renderAll()">⟳ Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="bookSelectedFromList()">✅ Book Selected</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="classes-table">
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Instructor</th>
+              <th>Type</th>
+              <th>Capacity</th>
+              <th>Availability</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="classes-tbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--grey2);">
+        💡 Click a row to select it, then press <strong>Book Selected</strong> to jump to the booking form.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ BOOK TAB -->
+  <div class="tab-panel" id="tab-book">
+    <div class="card" style="max-width:580px;">
+      <div class="card-header">
+        <span class="card-title">Book a Fitness Class</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>FULL NAME *</label>
+          <input type="text" id="book-name" placeholder="e.g. Alice Smith">
+        </div>
+        <div class="form-group">
+          <label>USER ID *</label>
+          <input type="text" id="book-uid" placeholder="e.g. M001">
+        </div>
+        <div class="form-group">
+          <label>USER TYPE</label>
+          <select id="book-type">
+            <option>Member</option>
+            <option>Student</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>MEMBERSHIP TIER</label>
+          <select id="book-tier">
+            <option>Standard</option>
+            <option>Premium</option>
+            <option>Student</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>SELECT CLASS *</label>
+          <select id="book-class"></select>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <button class="btn btn-primary" onclick="doBook()">✅  Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ MANAGE TAB -->
+  <div class="tab-panel" id="tab-manage">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Current Bookings</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="font-size:12px;color:var(--grey3);">Filter by class:</label>
+          <select id="manage-filter" onchange="renderManage()" style="font-size:13px;padding:6px 10px;">
+            <option value="ALL">All classes</option>
+          </select>
+        </div>
+      </div>
+      <div id="manage-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ ADMIN TAB -->
+  <div class="tab-panel" id="tab-admin">
+
+    <!-- Add class -->
+    <div class="card" style="max-width:560px;">
+      <div class="card-header">
+        <span class="card-title">Add New Class</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>CLASS NAME *</label>
+          <input type="text" id="add-name" placeholder="e.g. Yoga Flow">
+        </div>
+        <div class="form-group">
+          <label>INSTRUCTOR *</label>
+          <input type="text" id="add-instructor" placeholder="e.g. Sarah Johnson">
+        </div>
+        <div class="form-group">
+          <label>MAX CAPACITY *</label>
+          <input type="number" id="add-capacity" placeholder="e.g. 15" min="1" max="200">
+        </div>
+        <div class="form-group">
+          <label>CLASS TYPE</label>
+          <select id="add-type">
+            <option>Yoga</option><option>Pilates</option><option>Spin</option>
+            <option>HIIT</option><option>Zumba</option><option>Boxing</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <button class="btn btn-primary" onclick="doAddClass()">➕  Add Class</button>
+      </div>
+    </div>
+
+    <!-- Remove class -->
+    <div class="card" style="max-width:560px;">
+      <div class="card-header">
+        <span class="card-title">Remove a Class</span>
+      </div>
+      <div class="form-group" style="max-width:360px;">
+        <label>SELECT CLASS TO REMOVE</label>
+        <select id="remove-select"></select>
+      </div>
+      <div style="margin-top:16px;">
+        <button class="btn btn-danger" onclick="doRemoveClass()">🗑  Remove Class</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Confirm</div>
+    <div id="modal-body" style="font-size:14px;color:var(--grey3);line-height:1.6;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA STORE  (mirrors BookingSystem + FitnessClass in Python)
+// ═══════════════════════════════════════════════════════════
+
+let idCounter = 5;
+
+let classes = [
+  { class_id:"C001", name:"Yoga Flow",    instructor:"Sarah Johnson", capacity:15, class_type:"Yoga",
+    bookings:[
+      { user_id:"M001", user_name:"Alice Smith",  user_type:"Member" },
+      { user_id:"S002", user_name:"Bob Chen",     user_type:"Member" }
+    ]},
+  { class_id:"C002", name:"Spin Cycle",   instructor:"Mark Davis",    capacity:20, class_type:"Spin",
+    bookings:[
+      { user_id:"M003", user_name:"Carol White",  user_type:"Member" }
+    ]},
+  { class_id:"C003", name:"HIIT Blast",   instructor:"Emma Clarke",   capacity:12, class_type:"HIIT",
+    bookings:[
+      { user_id:"M004", user_name:"David Lee",    user_type:"Member" },
+      { user_id:"S005", user_name:"Eve Turner",   user_type:"Member" }
+    ]},
+  { class_id:"C004", name:"Pilates Core", instructor:"Lena Park",     capacity:10, class_type:"Pilates",
+    bookings:[] },
+];
+
+// ── helpers ──────────────────────────────────────────────
+function getClass(id)     { return classes.find(c => c.class_id === id); }
+function spacesLeft(fc)   { return fc.capacity - fc.bookings.length; }
+function isFull(fc)       { return fc.bookings.length >= fc.capacity; }
+
+// ── core booking logic (mirrors Python BookingSystem) ────
+function bookClass(classId, userName, userId, userType) {
+  const fc = getClass(classId);
+  if (!fc)                    return { ok: false, msg: "Class not found." };
+  if (isFull(fc))             return { ok: false, msg: `'${fc.name}' is at full capacity (${fc.capacity}).` };
+  if (fc.bookings.some(b => b.user_id === userId))
+                              return { ok: false, msg: `${userName} is already booked into '${fc.name}'.` };
+  fc.bookings.push({ user_id: userId, user_name: userName, user_type: userType });
+  return { ok: true, msg: `Booking confirmed: ${userName} → ${fc.name}.` };
+}
+
+function cancelBooking(classId, userId) {
+  const fc = getClass(classId);
+  if (!fc) return { ok: false, msg: "Class not found." };
+  const before = fc.bookings.length;
+  fc.bookings = fc.bookings.filter(b => b.user_id !== userId);
+  if (fc.bookings.length < before) return { ok: true, msg: "Booking cancelled successfully." };
+  return { ok: false, msg: "No booking found for this user in that class." };
+}
+
+function addClass(name, instructor, capacity, classType) {
+  const id = `C${String(idCounter++).padStart(3,'0')}`;
+  classes.push({ class_id: id, name, instructor, capacity: parseInt(capacity), class_type: classType, bookings: [] });
+  return { ok: true, msg: `Class '${name}' added (ID: ${id}).`, id };
+}
+
+function removeClass(classId) {
+  const fc = getClass(classId);
+  if (!fc) return { ok: false, msg: "Class not found." };
+  const n = fc.bookings.length;
+  classes = classes.filter(c => c.class_id !== classId);
+  return { ok: true, msg: `'${fc.name}' removed. ${n} booking(s) cancelled.` };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════
+
+let selectedClassId = null;
+
+function renderStats() {
+  const total   = classes.length;
+  const booked  = classes.reduce((s,c) => s + c.bookings.length, 0);
+  const full    = classes.filter(c => isFull(c)).length;
+  const spaces  = classes.reduce((s,c) => s + spacesLeft(c), 0);
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Classes</div>
+      <div class="stat-value">${total}</div>
+      <div class="stat-sub">Active sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Bookings</div>
+      <div class="stat-value">${booked}</div>
+      <div class="stat-sub">Across all classes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Classes Full</div>
+      <div class="stat-value" style="color:var(--red)">${full}</div>
+      <div class="stat-sub">No spaces left</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Spaces Available</div>
+      <div class="stat-value" style="color:var(--green)">${spaces}</div>
+      <div class="stat-sub">Ready to book</div>
+    </div>`;
+}
+
+function renderClassesTable() {
+  const tbody = document.getElementById('classes-tbody');
+  if (!classes.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">📭</div>No classes added yet.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = classes.map(fc => {
+    const ratio = fc.bookings.length / fc.capacity;
+    const left  = spacesLeft(fc);
+    let badge, fillColor;
+    if (ratio >= 1)    { badge = `<span class="badge badge-red">Full</span>`;          fillColor = "var(--red)";   }
+    else if (ratio >= .7){ badge = `<span class="badge badge-amber">Almost Full</span>`; fillColor = "var(--amber)"; }
+    else               { badge = `<span class="badge badge-green">Available</span>`;   fillColor = "var(--green)"; }
+    const pct = Math.min(100, Math.round(ratio*100));
+    const sel = selectedClassId === fc.class_id ? ' class="selected"' : '';
+    return `<tr${sel} onclick="selectClass('${fc.class_id}')">
+      <td><strong>${fc.name}</strong></td>
+      <td>${fc.instructor}</td>
+      <td><span style="background:var(--grey0);padding:2px 8px;border-radius:5px;font-size:12px;">${fc.class_type}</span></td>
+      <td style="font-family:var(--mono);font-size:13px;">${fc.bookings.length} / ${fc.capacity}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+          <span style="font-size:12px;color:var(--grey3);">${left} left</span>
+        </div>
+      </td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selectClass(id) {
+  selectedClassId = id;
+  renderClassesTable();
+}
+
+function renderBookSelect() {
+  const sel = document.getElementById('book-class');
+  sel.innerHTML = classes.map(fc =>
+    `<option value="${fc.class_id}">${fc.name} — ${fc.instructor} (${fc.bookings.length}/${fc.capacity})</option>`
+  ).join('');
+}
+
+function renderRemoveSelect() {
+  const sel = document.getElementById('remove-select');
+  sel.innerHTML = classes.map(fc =>
+    `<option value="${fc.class_id}">${fc.class_id} — ${fc.name} (${fc.bookings.length} bookings)</option>`
+  ).join('');
+}
+
+function renderManageFilter() {
+  const sel = document.getElementById('manage-filter');
+  const cur = sel.value;
+  sel.innerHTML = `<option value="ALL">All classes</option>` +
+    classes.map(fc => `<option value="${fc.class_id}"${cur===fc.class_id?' selected':''}>${fc.class_id} — ${fc.name}</option>`).join('');
+}
+
+function renderManage() {
+  const filter = document.getElementById('manage-filter').value;
+  const list   = document.getElementById('manage-list');
+  const shown  = filter === 'ALL' ? classes : classes.filter(c => c.class_id === filter);
+
+  let html = '';
+  shown.forEach(fc => {
+    if (fc.bookings.length === 0 && filter !== 'ALL') {
+      html += `<div class="empty"><div class="empty-icon">📋</div>No bookings for ${fc.name}.</div>`;
+      return;
+    }
+    if (fc.bookings.length === 0) return;
+    html += `<div class="section-label" style="margin-top:8px;">${fc.name} — ${fc.instructor}</div>`;
+    fc.bookings.forEach(b => {
+      html += `<div class="booking-row">
+        <div class="booking-info">
+          <div class="booking-name">${b.user_name}</div>
+          <div class="booking-meta">ID: ${b.user_id} · ${b.user_type}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="confirmCancel('${fc.class_id}','${b.user_id}','${b.user_name}')">
+          Cancel booking
+        </button>
+      </div>`;
+    });
+  });
+
+  const totalBookings = shown.reduce((s,c) => s + c.bookings.length, 0);
+  if (totalBookings === 0) {
+    html = `<div class="empty"><div class="empty-icon">📋</div>No bookings to display.</div>`;
+  }
+  list.innerHTML = html;
+}
+
+function renderAll() {
+  renderStats();
+  renderClassesTable();
+  renderBookSelect();
+  renderRemoveSelect();
+  renderManageFilter();
+  renderManage();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════
+
+function doBook() {
+  const name    = document.getElementById('book-name').value.trim();
+  const uid     = document.getElementById('book-uid').value.trim();
+  const utype   = document.getElementById('book-type').value;
+  const classId = document.getElementById('book-class').value;
+
+  // validation
+  document.getElementById('book-name').classList.remove('error');
+  document.getElementById('book-uid').classList.remove('error');
+  if (!name) { document.getElementById('book-name').classList.add('error'); showToast('Full name is required.','error'); return; }
+  if (!uid)  { document.getElementById('book-uid').classList.add('error');  showToast('User ID is required.','error');  return; }
+  if (!classId) { showToast('Please select a class.','error'); return; }
+
+  const result = bookClass(classId, name, uid, utype);
+  if (result.ok) {
+    showToast(result.msg, 'success');
+    document.getElementById('book-name').value = '';
+    document.getElementById('book-uid').value  = '';
+    renderAll();
+  } else {
+    showToast(result.msg, 'error');
+  }
+}
+
+function bookSelectedFromList() {
+  if (!selectedClassId) { showToast('Please select a class from the table first.','error'); return; }
+  switchTab('book');
+  document.getElementById('book-class').value = selectedClassId;
+}
+
+function doAddClass() {
+  const name     = document.getElementById('add-name').value.trim();
+  const inst     = document.getElementById('add-instructor').value.trim();
+  const capStr   = document.getElementById('add-capacity').value.trim();
+  const ctype    = document.getElementById('add-type').value;
+
+  if (!name) { showToast('Class name is required.','error'); return; }
+  if (!inst) { showToast('Instructor name is required.','error'); return; }
+  const cap = parseInt(capStr);
+  if (!capStr || isNaN(cap) || cap < 1 || cap > 200) {
+    showToast('Capacity must be a whole number between 1 and 200.','error'); return;
+  }
+
+  const result = addClass(name, inst, cap, ctype);
+  showToast(result.msg, 'success');
+  document.getElementById('add-name').value     = '';
+  document.getElementById('add-instructor').value = '';
+  document.getElementById('add-capacity').value = '';
+  renderAll();
+}
+
+function doRemoveClass() {
+  const sel = document.getElementById('remove-select');
+  const classId = sel.value;
+  if (!classId) { showToast('Please select a class.','error'); return; }
+  const fc = getClass(classId);
+  if (!fc) return;
+  openModal(
+    `Remove '${fc.name}'?`,
+    `This will permanently delete <strong>${fc.name}</strong> and cancel <strong>${fc.bookings.length}</strong> existing booking(s). This cannot be undone.`,
+    () => {
+      const result = removeClass(classId);
+      showToast(result.msg, 'success');
+      renderAll();
+    }
+  );
+}
+
+function confirmCancel(classId, userId, userName) {
+  openModal(
+    'Cancel Booking',
+    `Are you sure you want to cancel the booking for <strong>${userName}</strong>?`,
+    () => {
+      const result = cancelBooking(classId, userId);
+      if (result.ok) {
+        showToast(result.msg, 'success');
+        renderAll();
+      } else {
+        showToast(result.msg, 'error');
+      }
+    }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const ids = ['classes','book','manage','admin'];
+    b.classList.toggle('active', ids[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+  renderAll();
+}
+
+let toastTimer;
+function showToast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = type; }, 3400);
+}
+
+let modalCallback = null;
+function openModal(title, body, onConfirm) {
+  document.getElementById('modal-title').innerHTML = title;
+  document.getElementById('modal-body').innerHTML  = body;
+  modalCallback = onConfirm;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+}
+document.getElementById('modal-confirm-btn').onclick = () => {
+  if (modalCallback) modalCallback();
+  closeModal();
+};
+document.getElementById('modal-overlay').onclick = (e) => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+};
+
+// ── Init ────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
